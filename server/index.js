@@ -4,13 +4,15 @@ import sqlite3 from 'sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import nodemailer from 'nodemailer';
-import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const JWT_SECRET = process.env.JWT_SECRET || 'change_this_in_production';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
 
 // Email configuration
 const EMAIL_CONFIG = {
@@ -37,18 +39,24 @@ const ADMIN_CREDENTIALS = {
   password: 'admin@123'
 };
 
-// Simple token storage (in production, use Redis or database)
-const activeTokens = new Set();
-
-// Authentication middleware
+// Authentication middleware using JWT
 const authenticateAdmin = (req, res, next) => {
-  const token = req.headers.authorization?.replace('Bearer ', '') || req.query.token;
-  
-  if (!token || !activeTokens.has(token)) {
+  const bearerToken = req.headers.authorization?.startsWith('Bearer ')
+    ? req.headers.authorization.slice(7)
+    : undefined;
+  const token = bearerToken || req.query.token;
+
+  if (!token) {
     return res.status(401).json({ error: 'Unauthorized access' });
   }
-  
-  next();
+
+  try {
+    const payload = jwt.verify(token, JWT_SECRET);
+    req.admin = { username: payload.username };
+    next();
+  } catch (err) {
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
 };
 
 // Middleware
@@ -77,56 +85,49 @@ db.serialize(() => {
 
 // Login endpoint
 app.post('/api/login', (req, res) => {
-  const { username, password } = req.body;
-  
-  if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
-    // Generate a simple token
-    const token = crypto.randomBytes(32).toString('hex');
-    activeTokens.add(token);
-    
-    // Set token expiration (24 hours)
-    setTimeout(() => {
-      activeTokens.delete(token);
-    }, 24 * 60 * 60 * 1000);
-    
-    res.json({
-      success: true,
-      message: 'Login successful',
-      token: token
-    });
-  } else {
-    res.status(401).json({
-      success: false,
-      message: 'Invalid username or password'
-    });
+  const { username, password } = req.body || {};
+
+  if (!username || !password) {
+    return res.status(400).json({ success: false, message: 'Username and password are required' });
   }
+
+  if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+    const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+    return res.json({ success: true, message: 'Login successful', token });
+  }
+
+  return res.status(401).json({ success: false, message: 'Invalid username or password' });
 });
 
 // Logout endpoint
+// Stateless JWT logout placeholder (client should discard token)
 app.post('/api/logout', (req, res) => {
-  const token = req.headers.authorization?.replace('Bearer ', '');
-  if (token) {
-    activeTokens.delete(token);
-  }
   res.json({ success: true, message: 'Logged out successfully' });
 });
 
 app.post('/api/contact', (req, res) => {
-  const { name, email, company, message } = req.body;
+  const raw = req.body || {};
+  const name = String(raw.name || '').trim();
+  const email = String(raw.email || '').trim();
+  const company = String(raw.company || '').trim();
+  const message = String(raw.message || '').trim();
 
   // Validation
-  if (!name || !email || !message) {
-    return res.status(400).json({ 
-      error: 'Name, email, and message are required' 
-    });
-  }
-
-  // Email validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    return res.status(400).json({ 
-      error: 'Please enter a valid email address' 
-    });
+  if (!name || !email || !message) {
+    return res.status(400).json({ error: 'Name, email, and message are required' });
+  }
+  if (name.length < 2 || name.length > 100) {
+    return res.status(400).json({ error: 'Name must be between 2 and 100 characters' });
+  }
+  if (!emailRegex.test(email) || email.length > 254) {
+    return res.status(400).json({ error: 'Please enter a valid email address' });
+  }
+  if (company.length > 150) {
+    return res.status(400).json({ error: 'Company name is too long' });
+  }
+  if (message.length < 10 || message.length > 5000) {
+    return res.status(400).json({ error: 'Message must be between 10 and 5000 characters' });
   }
 
   // Insert contact into database
@@ -138,73 +139,53 @@ app.post('/api/contact', (req, res) => {
   stmt.run([name, email, company || '', message], async function(err) {
     if (err) {
       console.error('Database error:', err);
-      return res.status(500).json({ 
-        error: 'Failed to save contact information' 
-      });
+      return res.status(500).json({ error: 'Failed to save contact information' });
     }
 
-    // Send email notification
+    // Send email notification (best-effort)
     try {
-      if (!transporter) {
-        console.log('Email transporter not available, skipping email send');
-        res.json({ 
-          success: true, 
-          message: 'Contact information saved successfully (email not sent - transporter not configured)',
-          id: this.lastID 
-        });
-        return;
-      }
-      
-      const mailOptions = {
-        from: 'vishnupqw@gmail.com',
-        to: 'vishnupqw@gmail.com',
-        subject: `New Contact Form Submission - ${name}`,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
-            <div style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 20px; border-radius: 10px 10px 0 0; text-align: center;">
-              <h1 style="margin: 0; font-size: 24px;">📧 New Contact Form Submission</h1>
-            </div>
-            <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-              <div style="margin-bottom: 20px;">
-                <h3 style="color: #333; margin-bottom: 10px; border-bottom: 2px solid #6366f1; padding-bottom: 5px;">👤 Contact Details</h3>
-                <p style="margin: 8px 0;"><strong>Name:</strong> ${name}</p>
-                <p style="margin: 8px 0;"><strong>Email:</strong> <a href="mailto:${email}" style="color: #6366f1;">${email}</a></p>
-                <p style="margin: 8px 0;"><strong>Company:</strong> ${company || 'Not provided'}</p>
-                <p style="margin: 8px 0;"><strong>Submitted:</strong> ${new Date().toLocaleString()}</p>
+      if (transporter) {
+        const mailOptions = {
+          from: 'vishnupqw@gmail.com',
+          to: 'vishnupqw@gmail.com',
+          subject: `New Contact Form Submission - ${name}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+              <div style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 20px; border-radius: 10px 10px 0 0; text-align: center;">
+                <h1 style="margin: 0; font-size: 24px;">📧 New Contact Form Submission</h1>
               </div>
-              
-              <div style="margin-bottom: 20px;">
-                <h3 style="color: #333; margin-bottom: 10px; border-bottom: 2px solid #6366f1; padding-bottom: 5px;">💬 Message</h3>
-                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #6366f1;">
-                  <p style="margin: 0; line-height: 1.6; color: #555;">${message.replace(/\n/g, '<br>')}</p>
+              <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <div style="margin-bottom: 20px;">
+                  <h3 style="color: #333; margin-bottom: 10px; border-bottom: 2px solid #6366f1; padding-bottom: 5px;">👤 Contact Details</h3>
+                  <p style="margin: 8px 0;"><strong>Name:</strong> ${name}</p>
+                  <p style="margin: 8px 0;"><strong>Email:</strong> <a href="mailto:${email}" style="color: #6366f1;">${email}</a></p>
+                  <p style="margin: 8px 0;"><strong>Company:</strong> ${company || 'Not provided'}</p>
+                  <p style="margin: 8px 0;"><strong>Submitted:</strong> ${new Date().toLocaleString()}</p>
+                </div>
+                <div style="margin-bottom: 20px;">
+                  <h3 style="color: #333; margin-bottom: 10px; border-bottom: 2px solid #6366f1; padding-bottom: 5px;">💬 Message</h3>
+                  <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #6366f1;">
+                    <p style="margin: 0; line-height: 1.6; color: #555;">${message.replace(/\n/g, '<br>')}</p>
+                  </div>
+                </div>
+                <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+                  <p style="color: #666; font-size: 14px; margin: 0;">This email was automatically generated from your Vishnu Labs contact form.</p>
+                  <p style="color: #666; font-size: 12px; margin: 5px 0 0 0;">Database ID: ${this.lastID}</p>
                 </div>
               </div>
-              
-              <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-                <p style="color: #666; font-size: 14px; margin: 0;">
-                  This email was automatically generated from your Vishnu Labs contact form.
-                </p>
-                <p style="color: #666; font-size: 12px; margin: 5px 0 0 0;">
-                  Database ID: ${this.lastID}
-                </p>
-              </div>
             </div>
-          </div>
-        `
-      };
-
-      await transporter.sendMail(mailOptions);
-      console.log('Email sent successfully to vishnupqw@gmail.com');
+          `
+        };
+        await transporter.sendMail(mailOptions);
+        console.log('Email sent successfully to vishnupqw@gmail.com');
+      } else {
+        console.log('Email transporter not available, skipping email send');
+      }
     } catch (emailError) {
       console.error('Email sending failed:', emailError);
-      // Don't fail the request if email fails, just log the error
     }
 
-    res.json({ 
-      success: true, 
-      message: 'Contact information saved and email sent successfully',
-      id: this.lastID 
-    });
+    return res.json({ success: true, message: 'Contact information saved successfully', id: this.lastID });
   });
 
   stmt.finalize();
@@ -263,12 +244,13 @@ app.get('/email-test', (req, res) => {
 // Serve admin page (protected)
 app.get('/admin', (req, res) => {
   const token = req.query.token;
-  
-  if (!token || !activeTokens.has(token)) {
+  try {
+    if (!token) return res.redirect('/login');
+    jwt.verify(token, JWT_SECRET);
+    return res.sendFile(path.join(__dirname, 'admin.html'));
+  } catch {
     return res.redirect('/login');
   }
-  
-  res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
 // Start server

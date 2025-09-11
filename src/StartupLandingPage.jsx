@@ -135,11 +135,6 @@ const ParallaxBanner = () => {
               <Rocket className="mr-2 h-5 w-5" /> Get Started
             </Button>
           </Magnetic>
-          <Magnetic>
-            <Button variant="secondary" size="lg">
-              <PlayCircle className="mr-2 h-5 w-5" /> Watch Demo
-            </Button>
-          </Magnetic>
         </div>
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.1 }} className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/50">
           <ArrowDown className="h-5 w-5 animate-bounce" />
@@ -300,7 +295,7 @@ export default function StartupLandingPage() {
           <nav className="hidden gap-6 md:flex text-white/80">
             <Dropdown label="Features">
               <DropdownItem href="/demand-forecasting">Demand Forecasting</DropdownItem>
-              <DropdownItem href="/predictive-analytics">Predictive Analytics</DropdownItem>
+              <DropdownItem href="/predictive-analytics">Regression Analytics</DropdownItem>
               <DropdownItem href="/pricing-promotion-analytics">Pricing Analytics</DropdownItem>
               <DropdownItem href="/classification-anomaly-detection">Classification & Detection</DropdownItem>
               <DropdownItem href="/computer-vision-nlp">Computer Vision & NLP</DropdownItem>
@@ -330,7 +325,7 @@ export default function StartupLandingPage() {
           </TiltCard>
           <TiltCard>
             <a href="/predictive-analytics" className="block h-full">
-              <Feature icon={BarChart3} title="Predictive Analytics" desc="Decision Trees, Light GBM, and XGBoost for advanced predictive modeling." />
+              <Feature icon={BarChart3} title="Regression Analytics" desc="Decision Trees, Light GBM, and XGBoost for advanced predictive modeling." />
             </a>
           </TiltCard>
           <TiltCard>
@@ -375,7 +370,7 @@ export default function StartupLandingPage() {
             </a>
             <ul className="mt-6 space-y-2 text-white/80">
               <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-400" /> Demand Forecasting</li>
-              <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-400" /> Predictive Analytics</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-400" /> Regression Analytics</li>
               <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-400" /> Pricing Analytics</li>
               <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-400" /> Classification & Detection</li>
               <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-400" /> Computer Vision & NLP</li>
