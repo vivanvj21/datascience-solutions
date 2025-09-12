@@ -60,7 +60,8 @@ const authenticateAdmin = (req, res, next) => {
 };
 
 // Middleware
-app.use(cors());
+const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || 'http://localhost:5173';
+app.use(cors({ origin: ALLOWED_ORIGIN }));
 app.use(express.json());
 
 // Validate DATABASE_URL
