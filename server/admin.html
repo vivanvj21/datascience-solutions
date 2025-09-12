@@ -472,7 +472,7 @@
         async function logout() {
             try {
                 const token = getAuthToken();
-                await fetch('http://localhost:3001/api/logout', {
+                await fetch('https://datascience-solutions-production.up.railway.app/api/logout', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`
