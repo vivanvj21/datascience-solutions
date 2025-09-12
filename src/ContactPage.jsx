@@ -20,8 +20,9 @@ export default function ContactPage() {
   const [status, setStatus] = useState({ state: "idle", message: "" });
   const [fieldErrors, setFieldErrors] = useState({});
 
-  // API endpoint for our Express server
-  const API_ENDPOINT = "http://localhost:3001/api/contact";
+  // API endpoint: uses env var in production (e.g., Railway URL), falls back to localhost for dev
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:3001";
+  const API_ENDPOINT = `${API_BASE}/api/contact`;
 
   const onChange = (e) => {
     const { name, value } = e.target;

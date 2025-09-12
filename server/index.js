@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import sqlite3 from 'sqlite3';
+import pg from 'pg';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import nodemailer from 'nodemailer';
@@ -63,22 +63,29 @@ const authenticateAdmin = (req, res, next) => {
 app.use(cors());
 app.use(express.json());
 
-// Initialize SQLite database
-const dbPath = path.join(__dirname, 'contacts.db');
-const db = new sqlite3.Database(dbPath);
+// Initialize PostgreSQL database
+const { Pool } = pg;
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.PGSSLMODE === 'require' ? { rejectUnauthorized: false } : undefined,
+});
 
-// Create contacts table if it doesn't exist
-db.serialize(() => {
-  db.run(`
+async function ensureSchema() {
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS contacts (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      email TEXT NOT NULL,
-      company TEXT,
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(100) NOT NULL,
+      email VARCHAR(254) NOT NULL,
+      company VARCHAR(150),
       message TEXT NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
   `);
+}
+
+ensureSchema().catch((err) => {
+  console.error('Failed to ensure schema:', err);
+  process.exit(1);
 });
 
 // API Routes
@@ -130,90 +137,85 @@ app.post('/api/contact', (req, res) => {
     return res.status(400).json({ error: 'Message must be between 10 and 5000 characters' });
   }
 
-  // Insert contact into database
-  const stmt = db.prepare(`
-    INSERT INTO contacts (name, email, company, message) 
-    VALUES (?, ?, ?, ?)
-  `);
+  pool.query(
+    'INSERT INTO contacts (name, email, company, message) VALUES ($1, $2, $3, $4) RETURNING id',
+    [name, email, company || '', message],
+    async (err, result) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).json({ error: 'Failed to save contact information' });
+      }
 
-  stmt.run([name, email, company || '', message], async function(err) {
-    if (err) {
-      console.error('Database error:', err);
-      return res.status(500).json({ error: 'Failed to save contact information' });
-    }
+      const insertedId = result.rows[0]?.id;
 
-    // Send email notification (best-effort)
-    try {
-      if (transporter) {
-        const mailOptions = {
-          from: 'vishnupqw@gmail.com',
-          to: 'vishnupqw@gmail.com',
-          subject: `New Contact Form Submission - ${name}`,
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
-              <div style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 20px; border-radius: 10px 10px 0 0; text-align: center;">
-                <h1 style="margin: 0; font-size: 24px;">📧 New Contact Form Submission</h1>
-              </div>
-              <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                <div style="margin-bottom: 20px;">
-                  <h3 style="color: #333; margin-bottom: 10px; border-bottom: 2px solid #6366f1; padding-bottom: 5px;">👤 Contact Details</h3>
-                  <p style="margin: 8px 0;"><strong>Name:</strong> ${name}</p>
-                  <p style="margin: 8px 0;"><strong>Email:</strong> <a href="mailto:${email}" style="color: #6366f1;">${email}</a></p>
-                  <p style="margin: 8px 0;"><strong>Company:</strong> ${company || 'Not provided'}</p>
-                  <p style="margin: 8px 0;"><strong>Submitted:</strong> ${new Date().toLocaleString()}</p>
+      // Send email notification (best-effort)
+      try {
+        if (transporter) {
+          const mailOptions = {
+            from: 'vishnupqw@gmail.com',
+            to: 'vishnupqw@gmail.com',
+            subject: `New Contact Form Submission - ${name}`,
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+                <div style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 20px; border-radius: 10px 10px 0 0; text-align: center;">
+                  <h1 style="margin: 0; font-size: 24px;">📧 New Contact Form Submission</h1>
                 </div>
-                <div style="margin-bottom: 20px;">
-                  <h3 style="color: #333; margin-bottom: 10px; border-bottom: 2px solid #6366f1; padding-bottom: 5px;">💬 Message</h3>
-                  <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #6366f1;">
-                    <p style="margin: 0; line-height: 1.6; color: #555;">${message.replace(/\n/g, '<br>')}</p>
+                <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                  <div style="margin-bottom: 20px;">
+                    <h3 style="color: #333; margin-bottom: 10px; border-bottom: 2px solid #6366f1; padding-bottom: 5px;">👤 Contact Details</h3>
+                    <p style="margin: 8px 0;"><strong>Name:</strong> ${name}</p>
+                    <p style="margin: 8px 0;"><strong>Email:</strong> <a href="mailto:${email}" style="color: #6366f1;">${email}</a></p>
+                    <p style="margin: 8px 0;"><strong>Company:</strong> ${company || 'Not provided'}</p>
+                    <p style="margin: 8px 0;"><strong>Submitted:</strong> ${new Date().toLocaleString()}</p>
+                  </div>
+                  <div style="margin-bottom: 20px;">
+                    <h3 style="color: #333; margin-bottom: 10px; border-bottom: 2px solid #6366f1; padding-bottom: 5px;">💬 Message</h3>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #6366f1;">
+                      <p style="margin: 0; line-height: 1.6; color: #555;">${message.replace(/\n/g, '<br>')}</p>
+                    </div>
+                  </div>
+                  <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+                    <p style="color: #666; font-size: 14px; margin: 0;">This email was automatically generated from your Vishnu Labs contact form.</p>
+                    <p style="color: #666; font-size: 12px; margin: 5px 0 0 0;">Database ID: ${insertedId}</p>
                   </div>
                 </div>
-                <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-                  <p style="color: #666; font-size: 14px; margin: 0;">This email was automatically generated from your Vishnu Labs contact form.</p>
-                  <p style="color: #666; font-size: 12px; margin: 5px 0 0 0;">Database ID: ${this.lastID}</p>
-                </div>
               </div>
-            </div>
-          `
-        };
-        await transporter.sendMail(mailOptions);
-        console.log('Email sent successfully to vishnupqw@gmail.com');
-      } else {
-        console.log('Email transporter not available, skipping email send');
+            `
+          };
+          await transporter.sendMail(mailOptions);
+          console.log('Email sent successfully to vishnupqw@gmail.com');
+        } else {
+          console.log('Email transporter not available, skipping email send');
+        }
+      } catch (emailError) {
+        console.error('Email sending failed:', emailError);
       }
-    } catch (emailError) {
-      console.error('Email sending failed:', emailError);
+
+      return res.json({ success: true, message: 'Contact information saved successfully', id: insertedId });
     }
-
-    return res.json({ success: true, message: 'Contact information saved successfully', id: this.lastID });
-  });
-
-  stmt.finalize();
+  );
 });
 
 // Get all contacts (for admin purposes) - Protected route
-app.get('/api/contacts', authenticateAdmin, (req, res) => {
-  db.all('SELECT * FROM contacts ORDER BY created_at DESC', (err, rows) => {
-    if (err) {
-      console.error('Database error:', err);
-      return res.status(500).json({ error: 'Failed to fetch contacts' });
-    }
-    res.json(rows);
-  });
+app.get('/api/contacts', authenticateAdmin, async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM contacts ORDER BY created_at DESC');
+    return res.json(rows);
+  } catch (err) {
+    console.error('Database error:', err);
+    return res.status(500).json({ error: 'Failed to fetch contacts' });
+  }
 });
 
 // Clear all contacts (for admin purposes) - Protected route
-app.delete('/api/contacts', authenticateAdmin, (req, res) => {
-  db.run('DELETE FROM contacts', function(err) {
-    if (err) {
-      console.error('Database error:', err);
-      return res.status(500).json({ error: 'Failed to clear contacts' });
-    }
-    res.json({ 
-      success: true, 
-      message: `Cleared ${this.changes} contact(s) from database` 
-    });
-  });
+app.delete('/api/contacts', authenticateAdmin, async (req, res) => {
+  try {
+    const result = await pool.query('DELETE FROM contacts');
+    return res.json({ success: true, message: `Cleared ${result.rowCount} contact(s) from database` });
+  } catch (err) {
+    console.error('Database error:', err);
+    return res.status(500).json({ error: 'Failed to clear contacts' });
+  }
 });
 
 // Health check
@@ -256,18 +258,16 @@ app.get('/admin', (req, res) => {
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
-  console.log(`Database: ${dbPath}`);
 });
 
 // Graceful shutdown
-process.on('SIGINT', () => {
+process.on('SIGINT', async () => {
   console.log('\nShutting down server...');
-  db.close((err) => {
-    if (err) {
-      console.error('Error closing database:', err);
-    } else {
-      console.log('Database connection closed.');
-    }
-    process.exit(0);
-  });
+  try {
+    await pool.end();
+    console.log('Database pool closed.');
+  } catch (e) {
+    console.error('Error closing database pool:', e);
+  }
+  process.exit(0);
 });
