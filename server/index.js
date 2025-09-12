@@ -63,6 +63,13 @@ const authenticateAdmin = (req, res, next) => {
 app.use(cors());
 app.use(express.json());
 
+// Validate DATABASE_URL
+if (!process.env.DATABASE_URL) {
+  console.error('❌ DATABASE_URL environment variable is required but not set.');
+  console.error('Please ensure you have a PostgreSQL database service attached to your Railway project.');
+  process.exit(1);
+}
+
 // Initialize PostgreSQL database
 const { Pool } = pg;
 const pool = new Pool({
@@ -70,21 +77,42 @@ const pool = new Pool({
   ssl: process.env.PGSSLMODE === 'require' ? { rejectUnauthorized: false } : undefined,
 });
 
+// A function to set up the database schema
 async function ensureSchema() {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS contacts (
-      id SERIAL PRIMARY KEY,
-      name VARCHAR(100) NOT NULL,
-      email VARCHAR(254) NOT NULL,
-      company VARCHAR(150),
-      message TEXT NOT NULL,
-      created_at TIMESTAMPTZ DEFAULT NOW()
-    );
-  `);
+  try {
+    const createTableQuery = `
+      CREATE TABLE IF NOT EXISTS contacts (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        email VARCHAR(254) NOT NULL,
+        company VARCHAR(150),
+        message TEXT NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+    `;
+    await pool.query(createTableQuery);
+    console.log('✅ Database schema ensured successfully.');
+  } catch (err) {
+    console.error('❌ Failed to ensure schema:', err);
+    // Close the pool before exiting
+    try {
+      await pool.end();
+      console.log('Database pool closed after schema error.');
+    } catch (closeErr) {
+      console.error('Error closing database pool:', closeErr);
+    }
+    process.exit(1);
+  }
 }
 
-ensureSchema().catch((err) => {
-  console.error('Failed to ensure schema:', err);
+// Call the schema function before starting the server
+ensureSchema().then(() => {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`📊 Connected to PostgreSQL database`);
+  });
+}).catch((err) => {
+  console.error('❌ Failed to start server:', err);
   process.exit(1);
 });
 
@@ -142,7 +170,7 @@ app.post('/api/contact', (req, res) => {
     [name, email, company || '', message],
     async (err, result) => {
       if (err) {
-        console.error('Database error:', err);
+        console.error('❌ Database error:', err);
         return res.status(500).json({ error: 'Failed to save contact information' });
       }
 
@@ -202,7 +230,7 @@ app.get('/api/contacts', authenticateAdmin, async (req, res) => {
     const { rows } = await pool.query('SELECT * FROM contacts ORDER BY created_at DESC');
     return res.json(rows);
   } catch (err) {
-    console.error('Database error:', err);
+    console.error('❌ Database error:', err);
     return res.status(500).json({ error: 'Failed to fetch contacts' });
   }
 });
@@ -213,7 +241,7 @@ app.delete('/api/contacts', authenticateAdmin, async (req, res) => {
     const result = await pool.query('DELETE FROM contacts');
     return res.json({ success: true, message: `Cleared ${result.rowCount} contact(s) from database` });
   } catch (err) {
-    console.error('Database error:', err);
+    console.error('❌ Database error:', err);
     return res.status(500).json({ error: 'Failed to clear contacts' });
   }
 });
@@ -255,10 +283,7 @@ app.get('/admin', (req, res) => {
   }
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+// Server startup is now handled in the ensureSchema promise chain above
 
 // Graceful shutdown
 process.on('SIGINT', async () => {
