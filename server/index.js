@@ -11,6 +11,7 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const HOST = process.env.HOST || '0.0.0.0';
 const JWT_SECRET = process.env.JWT_SECRET || 'change_this_in_production';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
 
@@ -108,8 +109,8 @@ async function ensureSchema() {
 
 // Call the schema function before starting the server
 ensureSchema().then(() => {
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
+  app.listen(PORT, HOST, () => {
+    console.log(`🚀 Server listening on ${HOST}:${PORT}`);
     console.log(`📊 Connected to PostgreSQL database`);
   });
 }).catch((err) => {
