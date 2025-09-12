@@ -39,7 +39,7 @@ const ADMIN_CREDENTIALS = {
   password: 'admin@123'
 };
 
-// Authentication middleware using JWT
+
 const authenticateAdmin = (req, res, next) => {
   const bearerToken = req.headers.authorization?.startsWith('Bearer ')
     ? req.headers.authorization.slice(7)
