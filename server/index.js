@@ -3,7 +3,7 @@ import cors from 'cors';
 import pg from 'pg';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import jwt from 'jsonwebtoken';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -16,22 +16,23 @@ const JWT_SECRET = process.env.JWT_SECRET || 'change_this_in_production';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
 
 // Email configuration
-const EMAIL_CONFIG = {
-  // Using Gmail SMTP - you'll need to use an App Password
-  service: 'gmail',
-  auth: {
-    user: 'vishnupqw@gmail.com', // Your email
-    pass: process.env.GMAIL_APP_PASSWORD || 'psjf nlni qzbx cifx' // Use environment variable or replace with your Gmail App Password
-  }
-};
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
+const FROM_EMAIL = process.env.FROM_EMAIL || 'vishnupqw@gmail.com';
+const TO_EMAIL = process.env.TO_EMAIL || 'vishnupqw@gmail.com';
 
-// Create email transporter (with error handling)
-let transporter;
+// Create Resend client (with error handling)
+let resend;
 try {
-  transporter = nodemailer.createTransport(EMAIL_CONFIG);
+  if (!RESEND_API_KEY) {
+    console.warn('⚠️ RESEND_API_KEY not set. Email sending will be disabled.');
+    resend = null;
+  } else {
+    resend = new Resend(RESEND_API_KEY);
+    console.log('✅ Resend client initialized successfully');
+  }
 } catch (error) {
-  console.error('Email transporter creation failed:', error);
-  transporter = null;
+  console.error('❌ Resend client creation failed:', error);
+  resend = null;
 }
 
 // Authentication configuration
@@ -178,47 +179,46 @@ app.post('/api/contact', (req, res) => {
 
       const insertedId = result.rows[0]?.id;
 
-      // Send email notification (best-effort)
-      try {
-        if (transporter) {
-          const mailOptions = {
-            from: 'vishnupqw@gmail.com',
-            to: 'vishnupqw@gmail.com',
-            subject: `New Contact Form Submission - ${name}`,
-            html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
-                <div style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 20px; border-radius: 10px 10px 0 0; text-align: center;">
-                  <h1 style="margin: 0; font-size: 24px;">📧 New Contact Form Submission</h1>
+      // Send email notification (best-effort, non-blocking)
+      if (resend) {
+        // Don't await - send asynchronously to avoid blocking the response
+        resend.emails.send({
+          from: FROM_EMAIL,
+          to: [TO_EMAIL],
+          subject: `New Contact Form Submission - ${name}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+              <div style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 20px; border-radius: 10px 10px 0 0; text-align: center;">
+                <h1 style="margin: 0; font-size: 24px;">📧 New Contact Form Submission</h1>
+              </div>
+              <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <div style="margin-bottom: 20px;">
+                  <h3 style="color: #333; margin-bottom: 10px; border-bottom: 2px solid #6366f1; padding-bottom: 5px;">👤 Contact Details</h3>
+                  <p style="margin: 8px 0;"><strong>Name:</strong> ${name}</p>
+                  <p style="margin: 8px 0;"><strong>Email:</strong> <a href="mailto:${email}" style="color: #6366f1;">${email}</a></p>
+                  <p style="margin: 8px 0;"><strong>Company:</strong> ${company || 'Not provided'}</p>
+                  <p style="margin: 8px 0;"><strong>Submitted:</strong> ${new Date().toLocaleString()}</p>
                 </div>
-                <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                  <div style="margin-bottom: 20px;">
-                    <h3 style="color: #333; margin-bottom: 10px; border-bottom: 2px solid #6366f1; padding-bottom: 5px;">👤 Contact Details</h3>
-                    <p style="margin: 8px 0;"><strong>Name:</strong> ${name}</p>
-                    <p style="margin: 8px 0;"><strong>Email:</strong> <a href="mailto:${email}" style="color: #6366f1;">${email}</a></p>
-                    <p style="margin: 8px 0;"><strong>Company:</strong> ${company || 'Not provided'}</p>
-                    <p style="margin: 8px 0;"><strong>Submitted:</strong> ${new Date().toLocaleString()}</p>
+                <div style="margin-bottom: 20px;">
+                  <h3 style="color: #333; margin-bottom: 10px; border-bottom: 2px solid #6366f1; padding-bottom: 5px;">💬 Message</h3>
+                  <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #6366f1;">
+                    <p style="margin: 0; line-height: 1.6; color: #555;">${message.replace(/\n/g, '<br>')}</p>
                   </div>
-                  <div style="margin-bottom: 20px;">
-                    <h3 style="color: #333; margin-bottom: 10px; border-bottom: 2px solid #6366f1; padding-bottom: 5px;">💬 Message</h3>
-                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #6366f1;">
-                      <p style="margin: 0; line-height: 1.6; color: #555;">${message.replace(/\n/g, '<br>')}</p>
-                    </div>
-                  </div>
-                  <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-                    <p style="color: #666; font-size: 14px; margin: 0;">This email was automatically generated from your Vishnu Labs contact form.</p>
-                    <p style="color: #666; font-size: 12px; margin: 5px 0 0 0;">Database ID: ${insertedId}</p>
-                  </div>
+                </div>
+                <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+                  <p style="color: #666; font-size: 14px; margin: 0;">This email was automatically generated from your Vishnu Labs contact form.</p>
+                  <p style="color: #666; font-size: 12px; margin: 5px 0 0 0;">Database ID: ${insertedId}</p>
                 </div>
               </div>
-            `
-          };
-          await transporter.sendMail(mailOptions);
-          console.log('Email sent successfully to vishnupqw@gmail.com');
-        } else {
-          console.log('Email transporter not available, skipping email send');
-        }
-      } catch (emailError) {
-        console.error('Email sending failed:', emailError);
+            </div>
+          `
+        }).then(() => {
+          console.log('✅ Email sent successfully via Resend');
+        }).catch((emailError) => {
+          console.error('❌ Email sending failed:', emailError);
+        });
+      } else {
+        console.log('⚠️ Resend client not available, skipping email send');
       }
 
       return res.json({ success: true, message: 'Contact information saved successfully', id: insertedId });
