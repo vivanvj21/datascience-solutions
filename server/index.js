@@ -35,7 +35,7 @@ try {
   resend = null;
 }
 
-// Authentication configuration
+
 const ADMIN_CREDENTIALS = {
   username: 'loki',
   password: 'admin@123'
