@@ -185,6 +185,7 @@ app.post('/api/contact', (req, res) => {
         resend.emails.send({
           from: FROM_EMAIL,
           to: [TO_EMAIL],
+          replyTo: email,
           subject: `New Contact Form Submission - ${name}`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
@@ -195,7 +196,7 @@ app.post('/api/contact', (req, res) => {
                 <div style="margin-bottom: 20px;">
                   <h3 style="color: #333; margin-bottom: 10px; border-bottom: 2px solid #6366f1; padding-bottom: 5px;">👤 Contact Details</h3>
                   <p style="margin: 8px 0;"><strong>Name:</strong> ${name}</p>
-                  <p style="margin: 8px 0;"><strong>Email:</strong> <a href="mailto:${email}" style="color: #6366f1;">${email}</a></p>
+                    <p style="margin: 8px 0;"><strong>Email:</strong> ${email}</p>
                   <p style="margin: 8px 0;"><strong>Company:</strong> ${company || 'Not provided'}</p>
                   <p style="margin: 8px 0;"><strong>Submitted:</strong> ${new Date().toLocaleString()}</p>
                 </div>
