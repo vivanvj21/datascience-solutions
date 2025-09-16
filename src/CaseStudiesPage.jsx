@@ -45,20 +45,50 @@ export default function CaseStudiesPage() {
 
       <section className="mx-auto max-w-7xl px-6 py-16">
         <div className="grid gap-6 md:grid-cols-2">
-          {[1,2,3,4].map((i) => (
-            <Card key={i}>
+          <a href="/case-studies/1" className="block h-full" aria-label="Open Case Study 1: Demand Forecasting Transformation">
+            <Card className="transition-transform duration-200 hover:scale-[1.01]">
               <CardContent>
                 <div className="flex items-center gap-3">
                   <BookOpenText className="h-6 w-6 text-indigo-400" />
-                  <h3 className="text-lg font-semibold">Case Study {i}: Impactful DS Project</h3>
+                  <h3 className="text-lg font-semibold">Case Study 1: Demand Forecasting Transformation</h3>
                 </div>
-                <p className="mt-2 text-white/70">How we applied modern machine learning to drive measurable ROI for a client. From data wrangling to model deployment.</p>
-                <button className="mt-4 inline-flex items-center gap-2 text-sm bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl">
+                <p className="mt-2 text-white/70">How we built a centralized, accurate, and scalable forecasting framework across multiple regions for a global FMCG.</p>
+                <div className="mt-4 inline-flex items-center gap-2 text-sm text-indigo-400">
                   Read more <ArrowRight className="h-4 w-4" />
-                </button>
+                </div>
               </CardContent>
             </Card>
-          ))}
+          </a>
+
+          <a href="/case-studies/2" className="block h-full" aria-label="Open Case Study 2: Impact with Regression and Ensemble Methods">
+            <Card className="transition-transform duration-200 hover:scale-[1.01]">
+              <CardContent>
+                <div className="flex items-center gap-3">
+                  <BookOpenText className="h-6 w-6 text-indigo-400" />
+                  <h3 className="text-lg font-semibold">Case Study 2: Impact with Regression and Ensemble Methods</h3>
+                </div>
+                <p className="mt-2 text-white/70">Balancing accuracy, interpretability, and scalability with regression, trees, and ensembles.</p>
+                <div className="mt-4 inline-flex items-center gap-2 text-sm text-indigo-400">
+                  Read more <ArrowRight className="h-4 w-4" />
+                </div>
+              </CardContent>
+            </Card>
+          </a>
+
+          <a href="/case-studies/3" className="block h-full" aria-label="Open Case Study 3: Maximizing ROI with Data-Driven Pricing & Promotion Analytics">
+            <Card className="transition-transform duration-200 hover:scale-[1.01]">
+              <CardContent>
+                <div className="flex items-center gap-3">
+                  <BookOpenText className="h-6 w-6 text-indigo-400" />
+                  <h3 className="text-lg font-semibold">Case Study 3: Maximizing ROI with Data-Driven Pricing & Promotion Analytics</h3>
+                </div>
+                <p className="mt-2 text-white/70">Optimizing price, promotion mix, and ROI using elasticity, MMM, and scenario planning.</p>
+                <div className="mt-4 inline-flex items-center gap-2 text-sm text-indigo-400">
+                  Read more <ArrowRight className="h-4 w-4" />
+                </div>
+              </CardContent>
+            </Card>
+          </a>
         </div>
       </section>
     </div>

@@ -164,22 +164,24 @@ const Marquee = () => (
   </div>
 );
 
-const Feature = ({ icon: Icon, title, desc }) => (
+const Feature = ({ icon: Icon, title, desc, href }) => (
   <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
-    <Card className="group relative h-full overflow-hidden p-0 cursor-pointer transition-transform duration-300 hover:scale-[1.02]">
-      <div className="absolute -inset-1 rounded-3xl bg-gradient-to-tr from-indigo-500/20 via-fuchsia-500/20 to-blue-500/20 opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-100" />
-      <CardContent className="relative z-10">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10">
-          <Icon className="h-6 w-6 text-white" />
-        </div>
-        <h3 className="mt-4 text-xl font-semibold text-white">{title}</h3>
-        <p className="mt-2 text-sm text-white/70">{desc}</p>
-        <div className="mt-4 flex items-center gap-2 text-xs text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <span>Learn More</span>
-          <ArrowRight className="h-3 w-3" />
-        </div>
-      </CardContent>
-    </Card>
+    <a href={href} className="block h-full">
+      <Card className="group relative h-full overflow-hidden p-0 cursor-pointer transition-transform duration-300 hover:scale-[1.02]">
+        <div className="absolute -inset-1 rounded-3xl bg-gradient-to-tr from-indigo-500/20 via-fuchsia-500/20 to-blue-500/20 opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-100" />
+        <CardContent className="relative z-10">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10">
+            <Icon className="h-6 w-6 text-white" />
+          </div>
+          <h3 className="mt-4 text-xl font-semibold text-white">{title}</h3>
+          <p className="mt-2 text-sm text-white/70">{desc}</p>
+          <div className="mt-4 flex items-center gap-2 text-xs text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <span>Learn More</span>
+            <ArrowRight className="h-3 w-3" />
+          </div>
+        </CardContent>
+      </Card>
+    </a>
   </motion.div>
 );
 
@@ -319,44 +321,28 @@ export default function StartupLandingPage() {
         </div>
         <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           <TiltCard>
-            <a href="/demand-forecasting" className="block h-full">
-              <Feature icon={TrendingUp} title="Demand Forecasting" desc="ARIMA, SARIMA, and Delphi models for accurate demand prediction and planning." />
-            </a>
+            <Feature href="/demand-forecasting" icon={TrendingUp} title="Demand Forecasting" desc="ARIMA, SARIMA, and Delphi models for accurate demand prediction and planning." />
           </TiltCard>
           <TiltCard>
-            <a href="/predictive-analytics" className="block h-full">
-              <Feature icon={BarChart3} title="Regression Analytics" desc="Decision Trees, Light GBM, and XGBoost for advanced predictive modeling." />
-            </a>
+            <Feature href="/predictive-analytics" icon={BarChart3} title="Regression Analytics" desc="Decision Trees, Light GBM, and XGBoost for advanced predictive modeling." />
           </TiltCard>
           <TiltCard>
-            <a href="/pricing-promotion-analytics" className="block h-full">
-              <Feature icon={DollarSign} title="Pricing Analytics" desc="Dynamic pricing strategies and promotion optimization for revenue maximization." />
-            </a>
+            <Feature href="/pricing-promotion-analytics" icon={DollarSign} title="Pricing Analytics" desc="Dynamic pricing strategies and promotion optimization for revenue maximization." />
           </TiltCard>
           <TiltCard>
-            <a href="/classification-anomaly-detection" className="block h-full">
-              <Feature icon={CheckCircle2} title="Classification & Detection" desc="Advanced ML models for pattern recognition, fraud detection, and outlier identification." />
-            </a>
+            <Feature href="/classification-anomaly-detection" icon={CheckCircle2} title="Classification & Detection" desc="Advanced ML models for pattern recognition, fraud detection, and outlier identification." />
           </TiltCard>
           <TiltCard>
-            <a href="/computer-vision-nlp" className="block h-full">
-              <Feature icon={MousePointer2} title="Computer Vision & NLP" desc="AI solutions for image recognition, text analysis, and natural language understanding." />
-            </a>
+            <Feature href="/computer-vision-nlp" icon={MousePointer2} title="Computer Vision & NLP" desc="AI solutions for image recognition, text analysis, and natural language understanding." />
           </TiltCard>
           <TiltCard>
-            <a href="/generative-ai-llm" className="block h-full">
-              <Feature icon={Sparkles} title="Generative AI & LLMs" desc="Large Language Models and generative AI for content creation and automation." />
-            </a>
+            <Feature href="/generative-ai-llm" icon={Sparkles} title="Generative AI & LLMs" desc="Large Language Models and generative AI for content creation and automation." />
           </TiltCard>
           <TiltCard>
-            <a href="/data-business-insights" className="block h-full">
-              <Feature icon={BarChart3} title="Data & Business Insights" desc="Transform raw data into actionable business insights with comprehensive analytics." />
-            </a>
+            <Feature href="/data-business-insights" icon={BarChart3} title="Data & Business Insights" desc="Transform raw data into actionable business insights with comprehensive analytics." />
           </TiltCard>
           <TiltCard>
-            <a href="/ecommerce-analytics" className="block h-full">
-              <Feature icon={ShoppingCart} title="E-commerce Analytics" desc="Optimize your online store with advanced analytics and customer insights." />
-            </a>
+            <Feature href="/ecommerce-analytics" icon={ShoppingCart} title="E-commerce Analytics" desc="Optimize your online store with advanced analytics and customer insights." />
           </TiltCard>
         </div>
       </section>
