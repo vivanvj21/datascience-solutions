@@ -1,5 +1,6 @@
 
 import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Sparkles, MousePointer2, Rocket, Stars, PlayCircle, ArrowRight, ArrowDown, CheckCircle2, TrendingUp, BarChart3, DollarSign, ChevronDown, ShoppingCart } from "lucide-react";
 
@@ -284,6 +285,7 @@ const DropdownItem = ({ href, children, onItemClick }) => (
 );
 
 export default function StartupLandingPage() {
+  const navigate = useNavigate();
   const { scrollYProgress } = useScroll();
   const headerBg = useTransform(scrollYProgress, [0, 0.1], ["transparent", "rgba(11,11,19,0.7)"]);
   const headerBorder = useTransform(scrollYProgress, [0, 0.1], ["rgba(255,255,255,0)", "rgba(255,255,255,0.08)"]);
@@ -295,7 +297,7 @@ export default function StartupLandingPage() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2"><Sparkles className="h-5 w-5 text-indigo-400" /><span className="font-semibold">Vishnu Labs</span></div>
           <nav className="hidden gap-6 md:flex text-white/80">
-            <Dropdown label="Features">
+            <Dropdown label="Services">
               <DropdownItem href="/demand-forecasting">Demand Forecasting</DropdownItem>
               <DropdownItem href="/predictive-analytics">Regression Analytics</DropdownItem>
               <DropdownItem href="/pricing-promotion-analytics">Pricing Analytics</DropdownItem>
@@ -314,7 +316,7 @@ export default function StartupLandingPage() {
       <section className="mx-auto max-w-7xl px-6 pb-8">
         <Marquee />
       </section>
-      <section id="features" className="mx-auto max-w-7xl px-6 py-16">
+      <section id="services" className="mx-auto max-w-7xl px-6 py-16">
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="text-3xl font-bold md:text-4xl">Our <GradientText>Data Science</GradientText> Services</h2>
           <p className="mt-3 text-white/70">Comprehensive analytics solutions designed to unlock insights and drive business decisions.</p>
@@ -365,14 +367,19 @@ export default function StartupLandingPage() {
               <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-400" /> E-commerce Analytics</li>
             </ul>
           </div>
-          <div className="relative group">
+          <button
+            type="button"
+            onClick={() => navigate('/case-studies')}
+            aria-label="View case studies"
+            className="relative group w-full text-left focus:outline-none focus:ring-2 focus:ring-indigo-400 rounded-3xl"
+         >
             <ImageReveal src="https://dummyimage.com/1200x800/1a1a2e/ffffff&text=Case+Studies+UI" alt="Case Studies UI" />
-            <a href="/case-studies" className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="pointer-events-none absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               <Button size="lg" className="shadow-2xl shadow-indigo-500/20">
                 <ArrowRight className="mr-2 h-5 w-5" /> Read more
               </Button>
-            </a>
-          </div>
+            </div>
+          </button>
         </div>
       </section>
       

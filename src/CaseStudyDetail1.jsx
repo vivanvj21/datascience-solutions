@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Home, BookOpenText } from "lucide-react";
 import { Link } from "react-router-dom";
+import CaseStudyFooterNav from "./CaseStudyFooterNav";
 
 const GradientText = ({ children }) => (
   <span className="bg-gradient-to-r from-indigo-400 via-violet-400 to-fuchsia-400 bg-clip-text text-transparent">{children}</span>
@@ -93,6 +94,7 @@ export default function CaseStudyDetail1() {
           If your organization struggles with fragmented forecasting practices or low prediction accuracy, adopting a modern demand forecasting framework could unlock significant value. Partner with us to design and implement a tailored forecasting model that improves agility, optimizes resources, and drives sustainable growth.
         </p>
       </Section>
+      <CaseStudyFooterNav current={1} />
     </div>
   );
 }

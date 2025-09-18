@@ -8,7 +8,7 @@ const Card = ({ className = "", children }) => (
 );
 
 const CardContent = ({ className = "", children }) => (
-  <div className={`p-6 ${className}`}>{children}</div>
+  <div className={`flex h-full flex-col p-6 ${className}`}>{children}</div>
 );
 
 const GradientText = ({ children }) => (
@@ -46,14 +46,14 @@ export default function CaseStudiesPage() {
       <section className="mx-auto max-w-7xl px-6 py-16">
         <div className="grid gap-6 md:grid-cols-2">
           <a href="/case-studies/1" className="block h-full" aria-label="Open Case Study 1: Demand Forecasting Transformation">
-            <Card className="transition-transform duration-200 hover:scale-[1.01]">
+            <Card className="h-full transition-transform duration-200 hover:scale-[1.01]">
               <CardContent>
                 <div className="flex items-center gap-3">
                   <BookOpenText className="h-6 w-6 text-indigo-400" />
                   <h3 className="text-lg font-semibold">Case Study 1: Demand Forecasting Transformation</h3>
                 </div>
                 <p className="mt-2 text-white/70">How we built a centralized, accurate, and scalable forecasting framework across multiple regions for a global FMCG.</p>
-                <div className="mt-4 inline-flex items-center gap-2 text-sm text-indigo-400">
+                <div className="mt-auto inline-flex items-center gap-2 text-sm text-indigo-400">
                   Read more <ArrowRight className="h-4 w-4" />
                 </div>
               </CardContent>
@@ -61,7 +61,7 @@ export default function CaseStudiesPage() {
           </a>
 
           <a href="/case-studies/2" className="block h-full" aria-label="Open Case Study 2: Impact with Regression and Ensemble Methods">
-            <Card className="transition-transform duration-200 hover:scale-[1.01]">
+            <Card className="h-full transition-transform duration-200 hover:scale-[1.01]">
               <CardContent>
                 <div className="flex items-center gap-3">
                   <BookOpenText className="h-6 w-6 text-indigo-400" />
@@ -76,13 +76,84 @@ export default function CaseStudiesPage() {
           </a>
 
           <a href="/case-studies/3" className="block h-full" aria-label="Open Case Study 3: Maximizing ROI with Data-Driven Pricing & Promotion Analytics">
-            <Card className="transition-transform duration-200 hover:scale-[1.01]">
+            <Card className="h-full transition-transform duration-200 hover:scale-[1.01]">
               <CardContent>
                 <div className="flex items-center gap-3">
                   <BookOpenText className="h-6 w-6 text-indigo-400" />
                   <h3 className="text-lg font-semibold">Case Study 3: Maximizing ROI with Data-Driven Pricing & Promotion Analytics</h3>
                 </div>
                 <p className="mt-2 text-white/70">Optimizing price, promotion mix, and ROI using elasticity, MMM, and scenario planning.</p>
+                <div className="mt-4 inline-flex items-center gap-2 text-sm text-indigo-400">
+                  Read more <ArrowRight className="h-4 w-4" />
+                </div>
+              </CardContent>
+            </Card>
+          </a>
+        
+          <a href="/case-studies/4" className="block h-full" aria-label="Open Case Study 4: Mitigating Risk with Classification and Anomaly Detection">
+            <Card className="h-full transition-transform duration-200 hover:scale-[1.01]">
+              <CardContent>
+                <div className="flex items-center gap-3">
+                  <BookOpenText className="h-6 w-6 text-indigo-400" />
+                  <h3 className="text-lg font-semibold">Case Study 4: Mitigating Risk with Classification and Anomaly Detection</h3>
+                </div>
+                <p className="mt-2 text-white/70">Hybrid ML framework for real-time anomaly detection and risk classification at scale.</p>
+                <div className="mt-4 inline-flex items-center gap-2 text-sm text-indigo-400">
+                  Read more <ArrowRight className="h-4 w-4" />
+                </div>
+              </CardContent>
+            </Card>
+          </a>
+          <a href="/case-studies/5" className="block h-full" aria-label="Open Case Study 5: Transforming Business with Computer Vision and NLP">
+            <Card className="h-full transition-transform duration-200 hover:scale-[1.01]">
+              <CardContent>
+                <div className="flex items-center gap-3">
+                  <BookOpenText className="h-6 w-6 text-indigo-400" />
+                  <h3 className="text-lg font-semibold">Case Study 5: Transforming Business with Computer Vision and NLP</h3>
+                </div>
+                <p className="mt-2 text-white/70">AI-driven automation and insights from images and text at retail scale.</p>
+                <div className="mt-4 inline-flex items-center gap-2 text-sm text-indigo-400">
+                  Read more <ArrowRight className="h-4 w-4" />
+                </div>
+              </CardContent>
+            </Card>
+          </a>
+          <a href="/case-studies/6" className="block h-full" aria-label="Open Case Study 6: Scaling Innovation with Generative AI and LLMs">
+            <Card className="h-full transition-transform duration-200 hover:scale-[1.01]">
+              <CardContent>
+                <div className="flex items-center gap-3">
+                  <BookOpenText className="h-6 w-6 text-indigo-400" />
+                  <h3 className="text-lg font-semibold">Case Study 6: Scaling Innovation with Generative AI and LLMs</h3>
+                </div>
+                <p className="mt-2 text-white/70">Enterprise-grade LLM deployment for content, knowledge, and conversational AI.</p>
+                <div className="mt-4 inline-flex items-center gap-2 text-sm text-indigo-400">
+                  Read more <ArrowRight className="h-4 w-4" />
+                </div>
+              </CardContent>
+            </Card>
+          </a>
+          <a href="/case-studies/7" className="block h-full" aria-label="Open Case Study 7: Unlocking Value with Data and Business Insights">
+            <Card className="h-full transition-transform duration-200 hover:scale-[1.01]">
+              <CardContent>
+                <div className="flex items-center gap-3">
+                  <BookOpenText className="h-6 w-6 text-indigo-400" />
+                  <h3 className="text-lg font-semibold">Case Study 7: Unlocking Value with Data and Business Insights</h3>
+                </div>
+                <p className="mt-2 text-white/70">Centralized data-to-insights framework with standardized KPIs and ML models.</p>
+                <div className="mt-4 inline-flex items-center gap-2 text-sm text-indigo-400">
+                  Read more <ArrowRight className="h-4 w-4" />
+                </div>
+              </CardContent>
+            </Card>
+          </a>
+          <a href="/case-studies/8" className="block h-full" aria-label="Open Case Study 8: Driving Growth with E-Commerce Analytics">
+            <Card className="h-full transition-transform duration-200 hover:scale-[1.01]">
+              <CardContent>
+                <div className="flex items-center gap-3">
+                  <BookOpenText className="h-6 w-6 text-indigo-400" />
+                  <h3 className="text-lg font-semibold">Case Study 8: Driving Growth with E-Commerce Analytics</h3>
+                </div>
+                <p className="mt-2 text-white/70">Personalization, forecasting, and funnel optimization for measurable growth.</p>
                 <div className="mt-4 inline-flex items-center gap-2 text-sm text-indigo-400">
                   Read more <ArrowRight className="h-4 w-4" />
                 </div>

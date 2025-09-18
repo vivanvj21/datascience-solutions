@@ -13,6 +13,11 @@ import ContactPage from './ContactPage';
 import CaseStudyDetail1 from './CaseStudyDetail1';
 import CaseStudyDetail2 from './CaseStudyDetail2';
 import CaseStudyDetail3 from './CaseStudyDetail3';
+import CaseStudyDetail5 from './CaseStudyDetail5';
+import CaseStudyDetail6 from './CaseStudyDetail6';
+import CaseStudyDetail4 from './CaseStudyDetail4';
+import CaseStudyDetail7 from './CaseStudyDetail7';
+import CaseStudyDetail8 from './CaseStudyDetail8';
 
 export default function App() {
   return (
@@ -31,6 +36,11 @@ export default function App() {
         <Route path="/case-studies/1" element={<CaseStudyDetail1 />} />
         <Route path="/case-studies/2" element={<CaseStudyDetail2 />} />
         <Route path="/case-studies/3" element={<CaseStudyDetail3 />} />
+        <Route path="/case-studies/5" element={<CaseStudyDetail5 />} />
+        <Route path="/case-studies/6" element={<CaseStudyDetail6 />} />
+        <Route path="/case-studies/7" element={<CaseStudyDetail7 />} />
+        <Route path="/case-studies/8" element={<CaseStudyDetail8 />} />
+        <Route path="/case-studies/4" element={<CaseStudyDetail4 />} />
         <Route path="/contact" element={<ContactPage />} />
       </Routes>
     </Router>

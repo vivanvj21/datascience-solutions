@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Home, BookOpenText } from "lucide-react";
 import { Link } from "react-router-dom";
+import CaseStudyFooterNav from "./CaseStudyFooterNav";
 
 const GradientText = ({ children }) => (
   <span className="bg-gradient-to-r from-indigo-400 via-violet-400 to-fuchsia-400 bg-clip-text text-transparent">{children}</span>
@@ -83,6 +84,7 @@ export default function CaseStudyDetail2() {
           Organizations today face the challenge of choosing between accuracy, speed, and interpretability in machine learning adoption. A tailored approach that blends regression, decision trees, and ensemble methods can deliver both performance and clarity. Partner with us to build scalable, interpretable ML solutions that turn data into lasting competitive advantage.
         </p>
       </Section>
+      <CaseStudyFooterNav current={2} />
     </div>
   );
 }

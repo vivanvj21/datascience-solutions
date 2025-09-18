@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Home, BookOpenText } from "lucide-react";
 import { Link } from "react-router-dom";
+import CaseStudyFooterNav from "./CaseStudyFooterNav";
 
 const GradientText = ({ children }) => (
   <span className="bg-gradient-to-r from-indigo-400 via-violet-400 to-fuchsia-400 bg-clip-text text-transparent">{children}</span>
@@ -87,6 +88,7 @@ export default function CaseStudyDetail3() {
           <span className="font-medium">Keep title:</span> Maximizing ROI with Data-Driven Pricing & Promotion Analytics
         </p>
       </Section>
+      <CaseStudyFooterNav current={3} />
     </div>
   );
 }
